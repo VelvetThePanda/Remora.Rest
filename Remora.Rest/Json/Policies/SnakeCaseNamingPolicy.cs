@@ -44,6 +44,8 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
+using System;
+using System.Buffers;
 using System.Text;
 using System.Text.Json;
 using JetBrains.Annotations;
@@ -75,64 +77,51 @@ public class SnakeCaseNamingPolicy : JsonNamingPolicy
             return name;
         }
 
-        var sb = new StringBuilder(name.Length + (name.Length / 2));
-        var state = SeparatedCaseState.Start;
+        var buffer = ArrayPool<int>.Shared.Rent(name.Length / 2);
 
-        for (var i = 0; i < name.Length; i++)
+        var size = 0;
+
+        for (int i = 1; i < name.Length; i++)
         {
-            if (name[i] == ' ')
+            if (char.IsLower(name[i - 1]) && char.IsUpper(name[i]))
             {
-                if (state != SeparatedCaseState.Start)
-                {
-                    state = SeparatedCaseState.NewWord;
-                }
+                buffer[size++] = i;
             }
-            else if (char.IsUpper(name[i]))
+            else if (i > 1 && char.IsUpper(name[i - 1]) && char.IsUpper(name[i - 2]) && char.IsLower(name[i]))
             {
-                switch (state)
-                {
-                    case SeparatedCaseState.Upper:
-                        var hasNext = i + 1 < name.Length;
-                        if (i > 0 && hasNext)
-                        {
-                            var nextChar = name[i + 1];
-                            if (!char.IsUpper(nextChar) && nextChar != '_')
-                            {
-                                sb.Append('_');
-                            }
-                        }
-
-                        break;
-                    case SeparatedCaseState.Lower:
-                    case SeparatedCaseState.NewWord:
-                        sb.Append('_');
-                        break;
-                }
-
-                var c = !_upperCase ? char.ToLowerInvariant(name[i]) : char.ToUpperInvariant(name[i]);
-
-                sb.Append(c);
-
-                state = SeparatedCaseState.Upper;
-            }
-            else if (name[i] == '_')
-            {
-                sb.Append('_');
-                state = SeparatedCaseState.Start;
-            }
-            else
-            {
-                if (state == SeparatedCaseState.NewWord)
-                {
-                    sb.Append('_');
-                }
-
-                sb.Append(!_upperCase ? name[i] : char.ToUpperInvariant(name[i]));
-                state = SeparatedCaseState.Lower;
+                buffer[size++] = i - 1;
             }
         }
 
-        return sb.ToString();
+        var output = string.Create(name.Length + size, (name, buffer, size), static (span, state) =>
+        {
+            (string name, int[] buffer, int size) = state;
+
+            span.Fill(' ');
+
+            var nameSpan = name.AsSpan();
+            var last = buffer[0];
+
+            nameSpan.Slice(0, buffer[0]).ToLowerInvariant(span.Slice(0, buffer[0]));
+
+            for (int i = 1; i < size; i++)
+            {
+                var length = buffer[i] - last;
+                var index = last + (i - 1);
+                span[index] = '_';
+
+                nameSpan.Slice(last, length).ToLowerInvariant(span.Slice(index + 1, length));
+
+                last = buffer[i];
+            }
+
+            span[last + size - 1] = '_';
+            nameSpan.Slice(last).ToLowerInvariant(span.Slice(last + size));
+        });
+
+        ArrayPool<int>.Shared.Return(buffer);
+
+        return output;
     }
 
     private enum SeparatedCaseState

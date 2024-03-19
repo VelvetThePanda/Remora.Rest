@@ -1,27 +1,12 @@
 //
-//  DataObjectConverter.cs
-//
-//  Author:
-//       Jarl Gullberg <jarl.gullberg@gmail.com>
-//
-//  Copyright (c) Jarl Gullberg
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  SPDX-FileName: DataObjectConverter.cs
+//  SPDX-FileCopyrightText: Copyright (c) Jarl Gullberg
+//  SPDX-License-Identifier: LGPL-3.0-or-later
 //
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -44,8 +29,8 @@ namespace Remora.Rest.Json;
 public class DataObjectConverter<TInterface, TImplementation> : JsonConverterFactory
     where TImplementation : TInterface
 {
-    // Stores the best-matching constructor
-    private readonly ConstructorInfo _dtoConstructor;
+    // Stores the initialization info.
+    private readonly IInitializationInfo _dtoInitialization;
 
     private readonly IReadOnlyList<PropertyInfo> _dtoProperties;
 
@@ -55,12 +40,13 @@ public class DataObjectConverter<TInterface, TImplementation> : JsonConverterFac
     // Empty optionals for all properties of type Optional<T> (for polyfilling default values)
     private readonly IReadOnlyDictionary<Type, object?> _dtoEmptyOptionals;
 
-    private readonly Dictionary<PropertyInfo, string[]> _readNameOverrides;
-    private readonly Dictionary<PropertyInfo, string> _writeNameOverrides;
-    private readonly HashSet<PropertyInfo> _includeReadOnlyOverrides;
+    private readonly Dictionary<PropertyInfo, string[]> _readNameOverrides = new();
+    private readonly Dictionary<PropertyInfo, string> _writeNameOverrides = new();
+    private readonly HashSet<PropertyInfo> _includeReadOnlyOverrides = new();
+    private readonly HashSet<PropertyInfo> _excludeOverrides = new();
 
-    private readonly Dictionary<PropertyInfo, JsonConverter> _converterOverrides;
-    private readonly Dictionary<PropertyInfo, JsonConverterFactory> _converterFactoryOverrides;
+    private readonly Dictionary<PropertyInfo, JsonConverter> _converterOverrides = new();
+    private readonly Dictionary<PropertyInfo, JsonConverterFactory> _converterFactoryOverrides = new();
 
     // Lazily initialized based on what specific converter is requested
     private ObjectFactory<TImplementation>? _implementationDtoFactory;
@@ -82,23 +68,23 @@ public class DataObjectConverter<TInterface, TImplementation> : JsonConverterFac
     /// </summary>
     public DataObjectConverter()
     {
-        _readNameOverrides = new Dictionary<PropertyInfo, string[]>();
-        _writeNameOverrides = new Dictionary<PropertyInfo, string>();
-        _includeReadOnlyOverrides = new HashSet<PropertyInfo>();
-
-        _converterOverrides = new Dictionary<PropertyInfo, JsonConverter>();
-        _converterFactoryOverrides = new Dictionary<PropertyInfo, JsonConverterFactory>();
-
         var implementationType = typeof(TImplementation);
         var interfaceType = typeof(TInterface);
 
         var visibleProperties = implementationType.GetPublicProperties().ToArray();
-        var interfaceProperties = interfaceType.GetProperties();
 
         var dtoConstructor = FindBestMatchingConstructor(visibleProperties);
-        _dtoConstructor = dtoConstructor;
 
-        _dtoProperties = ReorderProperties(visibleProperties, dtoConstructor);
+        if (dtoConstructor is not null)
+        {
+            _dtoInitialization = new ConstructorInitializationInfo(dtoConstructor);
+            _dtoProperties = ReorderProperties(visibleProperties, dtoConstructor);
+        }
+        else
+        {
+            _dtoInitialization = new ObjectInitializationInfo(implementationType, visibleProperties);
+            _dtoProperties = visibleProperties;
+        }
 
         var interfaceMap = implementationType.GetInterfaceMap(interfaceType);
         _dtoPropertyWriters = _dtoProperties
@@ -184,9 +170,9 @@ public class DataObjectConverter<TInterface, TImplementation> : JsonConverterFac
     /// need not match.
     /// </summary>
     /// <param name="visibleProperties">The visible set of properties.</param>
-    /// <returns>The constructor.</returns>
-    /// <exception cref="MissingMethodException">Thrown if no appropriate constructor can be found.</exception>
-    private ConstructorInfo FindBestMatchingConstructor(PropertyInfo[] visibleProperties)
+    /// <returns>The constructor, or <c>null</c> if none was found and construction is to fall back
+    /// to using an object initializer.</returns>
+    private static ConstructorInfo? FindBestMatchingConstructor(PropertyInfo[] visibleProperties)
     {
         var visiblePropertyTypes = visibleProperties
             .Where(p => p.CanWrite)
@@ -200,11 +186,7 @@ public class DataObjectConverter<TInterface, TImplementation> : JsonConverterFac
             var singleCandidate = implementationConstructors[0];
             return IsMatchingConstructor(singleCandidate, visiblePropertyTypes)
                 ? singleCandidate
-                : throw new MissingMethodException
-                (
-                    implementationType.Name,
-                    $"ctor({string.Join(", ", visiblePropertyTypes.Select(t => t.Name))})"
-                );
+                : null;
         }
 
         var matchingConstructors = implementationType.GetConstructors()
@@ -215,11 +197,7 @@ public class DataObjectConverter<TInterface, TImplementation> : JsonConverterFac
             return matchingConstructors[0];
         }
 
-        throw new MissingMethodException
-        (
-            implementationType.Name,
-            $"ctor({string.Join(", ", visiblePropertyTypes.Select(t => t.Name))})"
-        );
+        return null;
     }
 
     /// <summary>
@@ -270,6 +248,43 @@ public class DataObjectConverter<TInterface, TImplementation> : JsonConverterFac
         }
 
         _includeReadOnlyOverrides.Add(property);
+        return this;
+    }
+
+    /// <summary>
+    /// Explicitly marks a property as excluded in the set of serialized properties. This is useful when read-write
+    /// properties need to be kept off the wire for some reason.
+    /// </summary>
+    /// <param name="propertyExpression">The property expression.</param>
+    /// <typeparam name="TProperty">The property type.</typeparam>
+    /// <returns>The converter, with the inclusion.</returns>
+    public DataObjectConverter<TInterface, TImplementation> ExcludeWhenSerializing<TProperty>
+    (
+        Expression<Func<TImplementation, TProperty>> propertyExpression
+    )
+    {
+        if (propertyExpression.Body is not MemberExpression memberExpression)
+        {
+            throw new InvalidOperationException();
+        }
+
+        var member = memberExpression.Member;
+        if (member is not PropertyInfo property)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if (!_dtoProperties.Contains(property))
+        {
+            throw new InvalidOperationException();
+        }
+
+        if (_excludeOverrides.Contains(property))
+        {
+            return this;
+        }
+
+        _excludeOverrides.Add(property);
         return this;
     }
 
@@ -494,23 +509,43 @@ public class DataObjectConverter<TInterface, TImplementation> : JsonConverterFac
     ) => AddPropertyConverter(propertyExpression, converterFactory);
 
     /// <inheritdoc />
-    public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+    public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
     {
         var writeProperties = new List<DTOPropertyInfo>();
         var readProperties = new List<DTOPropertyInfo>();
 
-        foreach (var property in _dtoProperties)
+        var parameters = (_dtoInitialization as ConstructorInitializationInfo)?.Constructor.GetParameters();
+        var properties = _dtoProperties;
+        for (int i = 0; i < properties.Count; i++)
         {
+            var property = properties[i];
+
+            Optional<object?> defaultValue = default;
+
+            if (_dtoInitialization is ConstructorInitializationInfo)
+            {
+                // Properties are currently sorted to match the parameter order, followed by read-only properties.
+                // As such, we assume that this code will give us the matching parameter for a property.
+                var parameter = (uint)i < (uint)parameters!.Length ? parameters[i] : null;
+
+                // Just to be sure, we assert this behavior here. This is essentially how property reordering associated property and parameter.
+                Debug.Assert
+                (
+                    parameter == null || (property.Name.Equals(parameter.Name, StringComparison.InvariantCultureIgnoreCase) && property.PropertyType == parameter.ParameterType),
+                    "Expectations around property/parameter order are upheld."
+                );
+
+                defaultValue = GetDefaultValueForParameter(property.PropertyType, parameter);
+            }
+
             var converter = GetConverter(property, options);
             var propertyOptions = converter == null ? options : CreatePropertyConverterOptions(options, converter);
-
-            var defaultValue = GetDefaultValueForType(property.PropertyType);
             var readNames = GetReadJsonPropertyName(property, options);
             var writeNames = GetWriteJsonPropertyName(property, options);
             var writer = GetPropertyWriter(property);
 
             // We cache this as well since the check is somewhat complex
-            bool allowsNull = property.AllowsNull();
+            var allowsNull = property.AllowsNull();
 
             var data = new DTOPropertyInfo
             (
@@ -530,7 +565,7 @@ public class DataObjectConverter<TInterface, TImplementation> : JsonConverterFac
                 readProperties.Add(data);
             }
 
-            if (property.CanWrite || ShouldIncludeReadOnlyProperty(property))
+            if ((property.CanWrite || ShouldIncludeReadOnlyProperty(property)) && !_excludeOverrides.Contains(property))
             {
                 // Any property that is writable and not excluded due to being read-only,
                 // can be *written* to JSON.
@@ -540,31 +575,37 @@ public class DataObjectConverter<TInterface, TImplementation> : JsonConverterFac
 
         if (typeToConvert == typeof(TInterface))
         {
+            _interfaceDtoFactory ??= ExpressionFactoryUtilities.CreateFactory<TInterface>(_dtoInitialization);
             return new BoundDataObjectConverter<TInterface>
             (
-                _interfaceDtoFactory ??= ExpressionFactoryUtilities.CreateFactory<TInterface>(_dtoConstructor),
+                _interfaceDtoFactory,
                 _allowExtraProperties,
                 writeProperties.ToArray(),
                 readProperties.ToArray()
             );
         }
-        else if (typeToConvert == typeof(TImplementation))
+
+        // ReSharper disable once InvertIf
+        if (typeToConvert == typeof(TImplementation))
         {
+            _implementationDtoFactory ??= ExpressionFactoryUtilities.CreateFactory<TImplementation>(_dtoInitialization);
             return new BoundDataObjectConverter<TImplementation>
             (
-                _implementationDtoFactory ??= ExpressionFactoryUtilities.CreateFactory<TImplementation>(_dtoConstructor),
+                _implementationDtoFactory,
                 _allowExtraProperties,
                 writeProperties.ToArray(),
                 readProperties.ToArray()
             );
         }
-        else
-        {
-            throw new ArgumentException("This converter cannot convert the provided type.", nameof(typeToConvert));
-        }
+
+        throw new ArgumentException("This converter cannot convert the provided type.", nameof(typeToConvert));
     }
 
-    private static JsonSerializerOptions CreatePropertyConverterOptions(JsonSerializerOptions options, JsonConverter converter)
+    private static JsonSerializerOptions CreatePropertyConverterOptions
+    (
+        JsonSerializerOptions options,
+        JsonConverter converter
+    )
     {
         var cloned = new JsonSerializerOptions(options);
         cloned.Converters.Insert(0, converter);
@@ -606,7 +647,9 @@ public class DataObjectConverter<TInterface, TImplementation> : JsonConverterFac
     /// </summary>
     /// <param name="dtoProperty">The property to get a property converter for.</param>
     /// <param name="options">The active serializer options.</param>
-    /// <returns>The registered property converter, or <see langword="null"/> if no property converter was added.</returns>
+    /// <returns>
+    /// The registered property converter, or <see langword="null"/> if no property converter was added.
+    /// </returns>
     private JsonConverter? GetConverter(PropertyInfo dtoProperty, JsonSerializerOptions options)
     {
         if (_converterOverrides.TryGetValue(dtoProperty, out var converter))
@@ -640,19 +683,37 @@ public class DataObjectConverter<TInterface, TImplementation> : JsonConverterFac
     }
 
     /// <summary>
-    /// Gets the default value for a type or <see langword="null"/> if it has no default value.
+    /// Gets the default value for a parameter. If this is an <see cref="Optional{TValue}"/> parameter,
+    /// uses <see langword="default"/> if there is no explicit default.
     /// </summary>
-    /// <remarks>
-    /// This always either <see langword="default"/> for <see cref="Optional{TValue}"/> or <see langword="null"/> for any other type.
-    /// </remarks>
-    /// <param name="type">The type to get the default value for.</param>
-    /// <returns>The default value or <see langword="null"/>.</returns>
-    private object? GetDefaultValueForType(Type type)
+    /// <param name="propertyType">The type of the associated property. This should be equal to the parameter's type, unless it is null.</param>
+    /// <param name="parameter">The parameter to get the default value for.</param>
+    /// <returns>Empty, if there is no default, otherwise the default parameter value.</returns>
+    private Optional<object?> GetDefaultValueForParameter(Type propertyType, ParameterInfo? parameter)
     {
-        // There currently are only default values for Optional<T> types.
-        // For those, the default value will be the empty instance.
-        // For any other type, this method returns null.
-        return _dtoEmptyOptionals.GetValueOrDefault(type);
+        // If there is an explicit default parameter, we use that.
+        object? defaultValue;
+        if (parameter != null && parameter.HasDefaultValue)
+        {
+            defaultValue = parameter.DefaultValue;
+            if (propertyType.IsValueType && defaultValue is null)
+            {
+                // "default" default parameters for value-types are null here. Instantiate the appropriate value.
+                // We try to grab an empty optional first since there is a good chance we're dealing with an Optional<T>.
+                defaultValue = _dtoEmptyOptionals.GetValueOrDefault(propertyType) ?? Activator.CreateInstance(propertyType);
+            }
+
+            return defaultValue;
+        }
+
+        // Polyfill default parameters for Optional<T> properties.
+        if (_dtoEmptyOptionals.TryGetValue(propertyType, out defaultValue))
+        {
+            return defaultValue;
+        }
+
+        // Otherwise, we have no default value.
+        return default;
     }
 
     /// <summary>
@@ -666,7 +727,8 @@ public class DataObjectConverter<TInterface, TImplementation> : JsonConverterFac
     }
 
     /// <summary>
-    /// Gets a delegate that can write the <paramref name="property"/> to JSON given an instance of <typeparamref name="TImplementation"/>.
+    /// Gets a delegate that can write the <paramref name="property"/> to JSON given an instance of
+    /// <typeparamref name="TImplementation"/>.
     /// </summary>
     /// <param name="property">The property.</param>
     /// <returns>A <see cref="DTOPropertyWriter"/> for the specified property.</returns>

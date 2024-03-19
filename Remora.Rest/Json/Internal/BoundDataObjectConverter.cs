@@ -1,23 +1,7 @@
 ﻿//
-//  BoundDataObjectConverter.cs
-//
-//  Author:
-//       Jarl Gullberg <jarl.gullberg@gmail.com>
-//
-//  Copyright (c) Jarl Gullberg
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  SPDX-FileName: BoundDataObjectConverter.cs
+//  SPDX-FileCopyrightText: Copyright (c) Jarl Gullberg
+//  SPDX-License-Identifier: LGPL-3.0-or-later
 //
 
 using System;
@@ -30,8 +14,9 @@ using Remora.Rest.Json.Reflection;
 namespace Remora.Rest.Json.Internal;
 
 /// <summary>
-/// The actual implementation of <see cref="DataObjectConverter{TInterface, TImplementation}"/>, created by that same type.
-/// These instances are bound to a certain set of <see cref="JsonSerializerOptions"/> and cache any data it might need.
+/// The actual implementation of <see cref="DataObjectConverter{TInterface, TImplementation}"/>, created by that same
+/// type. These instances are bound to a certain set of <see cref="JsonSerializerOptions"/> and cache any data it might
+/// need.
 /// </summary>
 /// <typeparam name="T">The type this instance converts.</typeparam>
 internal sealed class BoundDataObjectConverter<T> : JsonConverter<T>
@@ -114,7 +99,10 @@ internal sealed class BoundDataObjectConverter<T> : JsonConverter<T>
             {
                 if (!_allowExtraProperties)
                 {
-                    throw new JsonException($"DTO disallows extra properties and has no matching property for JSON property {propertyName}.");
+                    throw new JsonException
+                    (
+                        $"DTO disallows extra properties and has no matching property for JSON property {propertyName}."
+                    );
                 }
 
                 // No matching property - we'll skip it
@@ -131,7 +119,12 @@ internal sealed class BoundDataObjectConverter<T> : JsonConverter<T>
                 continue;
             }
 
-            var propertyValue = JsonSerializer.Deserialize(ref reader, dtoProperty.Property.PropertyType, dtoProperty.Options);
+            var propertyValue = JsonSerializer.Deserialize
+            (
+                ref reader,
+                dtoProperty.Property.PropertyType,
+                dtoProperty.Options
+            );
 
             // Verify nullability
             if (propertyValue is null && !dtoProperty.AllowsNull)
@@ -139,7 +132,7 @@ internal sealed class BoundDataObjectConverter<T> : JsonConverter<T>
                 throw new JsonException($"null is not a valid value for DTO property \"{dtoProperty.Property.Name}\".");
             }
 
-            int index = dtoProperty.ReadIndex;
+            var index = dtoProperty.ReadIndex;
             if (isPrimaryChoice || constructorArguments[index] == DataObjectConverterHelpers.Missing)
             {
                 constructorArguments[index] = propertyValue;
@@ -152,22 +145,24 @@ internal sealed class BoundDataObjectConverter<T> : JsonConverter<T>
         }
 
         // Polyfill/check properties that weren't found yet
-        for (int i = 0; i < constructorArguments.Length; i++)
+        for (var i = 0; i < constructorArguments.Length; i++)
         {
-            if (constructorArguments[i] == DataObjectConverterHelpers.Missing)
+            if (constructorArguments[i] != DataObjectConverterHelpers.Missing)
             {
-                var dtoProperty = readProperties[i];
-                if (dtoProperty.DefaultValue != null)
-                {
-                    constructorArguments[i] = dtoProperty.DefaultValue;
-                }
-                else
-                {
-                    throw new JsonException
-                    (
-                        $"The data property \"{dtoProperty.Property.Name}\" did not have a corresponding value in the JSON."
-                    );
-                }
+                continue;
+            }
+
+            var dtoProperty = readProperties[i];
+            if (dtoProperty.DefaultValue.TryGet(out var defaultValue))
+            {
+                constructorArguments[i] = defaultValue;
+            }
+            else
+            {
+                throw new JsonException
+                (
+                    $"The data property \"{dtoProperty.Property.Name}\" did not have a corresponding value in the JSON."
+                );
             }
         }
 

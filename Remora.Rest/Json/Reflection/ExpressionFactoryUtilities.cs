@@ -1,27 +1,10 @@
 ﻿//
-//  ExpressionFactoryUtilities.cs
-//
-//  Author:
-//       Jarl Gullberg <jarl.gullberg@gmail.com>
-//
-//  Copyright (c) Jarl Gullberg
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  SPDX-FileName: ExpressionFactoryUtilities.cs
+//  SPDX-FileCopyrightText: Copyright (c) Jarl Gullberg
+//  SPDX-License-Identifier: LGPL-3.0-or-later
 //
 
 using System;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
@@ -72,58 +55,27 @@ internal delegate void DTOPropertyWriter(Utf8JsonWriter writer, DTOPropertyInfo 
 internal static class ExpressionFactoryUtilities
 {
     /// <summary>
-    /// Creates an <see cref="ObjectFactory{T}"/> for the given type <typeparamref name="T"/> using the constructor
-    /// <paramref name="constructor"/>.
+    /// Creates an <see cref="ObjectFactory{T}"/> for the given type <typeparamref name="T"/>.
     /// </summary>
-    /// <param name="constructor">The constructor to be used to create the instance.</param>
+    /// <param name="initialization">The necessary information to create this object.</param>
     /// <typeparam name="T">The type of the instance to create.</typeparam>
     /// <returns>A factory that can be used to create instances of the specified type.</returns>
     /// <exception cref="ArgumentException">
     /// If the type <typeparamref name="T"/> is not assignable to the declaring type of the constructor, or the
     /// constructor does not belong to a type.
     /// </exception>
-    public static ObjectFactory<T> CreateFactory<T>(ConstructorInfo constructor)
+    public static ObjectFactory<T> CreateFactory<T>(IInitializationInfo initialization)
     {
-        if (constructor.DeclaringType == null)
-        {
-            throw new ArgumentException
-            (
-                $"Constructor does not belong to a type",
-                nameof(constructor)
-            );
-        }
-
-        if (!typeof(T).IsAssignableFrom(constructor.DeclaringType))
+        if (!typeof(T).IsAssignableFrom(initialization.TargetType))
         {
             throw new ArgumentException
             (
                 $"Constructor does not belong to a type corresponding to {nameof(T)}",
-                nameof(constructor)
+                nameof(initialization)
             );
         }
 
-        var arguments = Expression.Parameter(typeof(object[]), "arguments");
-
-        var parameters = constructor.GetParameters()
-            .Select((p, i) => Expression.Convert
-                (
-                    Expression.ArrayIndex(arguments, Expression.Constant(i)),
-                    p.ParameterType
-                )
-            );
-
-        /*
-         * (object[] arguments) => new constructor(
-         *     (Param0Type) arguments[0],
-         *     (Param1Type) arguments[1],
-         *     ...
-         * );
-         */
-        return Expression.Lambda<ObjectFactory<T>>
-        (
-            Expression.New(constructor, parameters),
-            arguments
-        ).Compile();
+        return initialization.CreateObjectFactory<T>();
     }
 
     /// <summary>
@@ -219,12 +171,10 @@ internal static class ExpressionFactoryUtilities
                 .GetMethod(nameof(WriteOptionalProperty), flags)!
                 .MakeGenericMethod(valueType.GetGenericArguments());
         }
-        else
-        {
-            return typeof(ExpressionFactoryUtilities)
-                .GetMethod(nameof(WriteRequiredProperty), flags)!
-                .MakeGenericMethod(valueType);
-        }
+
+        return typeof(ExpressionFactoryUtilities)
+            .GetMethod(nameof(WriteRequiredProperty), flags)!
+            .MakeGenericMethod(valueType);
     }
 
     /// <summary>

@@ -1,32 +1,17 @@
 //
-//  JsonArrayMatcherBuilder.cs
-//
-//  Author:
-//       Jarl Gullberg <jarl.gullberg@gmail.com>
-//
-//  Copyright (c) Jarl Gullberg
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  SPDX-FileName: JsonArrayMatcherBuilder.cs
+//  SPDX-FileCopyrightText: Copyright (c) Jarl Gullberg
+//  SPDX-License-Identifier: LGPL-3.0-or-later
 //
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text.Json;
+using FluentAssertions;
 using JetBrains.Annotations;
-using Xunit;
 using Xunit.Sdk;
 
 namespace Remora.Rest.Xunit.Json;
@@ -44,15 +29,12 @@ public class JsonArrayMatcherBuilder
     /// </summary>
     /// <param name="countPredicate">The function of the required length.</param>
     /// <returns>The builder, with the added requirement.</returns>
-    public JsonArrayMatcherBuilder WithCount(Func<long, bool> countPredicate)
+    public JsonArrayMatcherBuilder WithCount(Expression<Func<int, bool>> countPredicate)
     {
-        _matchers.Add(j =>
+        _matchers.Add(array =>
         {
-            var match = countPredicate(j.LongCount());
-            if (!match)
-            {
-                throw new XunitException("Count predicate did not match.");
-            }
+            array
+                .Should().HaveCount(countPredicate);
 
             return true;
         });
@@ -66,35 +48,56 @@ public class JsonArrayMatcherBuilder
     /// <param name="count">The required length.</param>
     /// <returns>The builder, with the added requirement.</returns>
     [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local", Justification = "Intentional.")]
-    public JsonArrayMatcherBuilder WithCount(long count) => WithCount(c =>
+    public JsonArrayMatcherBuilder WithCount(int count)
     {
-        Assert.Equal(count, c);
-        return true;
-    });
+        _matchers.Add(array =>
+        {
+            array
+                .Should().HaveCount(count);
+
+            return true;
+        });
+
+        return this;
+    }
 
     /// <summary>
-    /// Adds a requirement that the array is of an exact length.
+    /// Adds a requirement that the array is greater than or equal to a specified length.
     /// </summary>
     /// <param name="count">The required length.</param>
     /// <returns>The builder, with the added requirement.</returns>
     [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local", Justification = "Intentional.")]
-    public JsonArrayMatcherBuilder WithAtLeastCount(long count) => WithCount(c =>
+    public JsonArrayMatcherBuilder WithGreaterOrEqualToCount(int count)
     {
-        Assert.NotInRange(c, 0, count - 1);
-        return true;
-    });
+        _matchers.Add(array =>
+        {
+            array
+                .Should().HaveCountGreaterOrEqualTo(count);
+
+            return true;
+        });
+
+        return this;
+    }
 
     /// <summary>
-    /// Adds a requirement that the array is of an exact length.
+    /// Adds a requirement that the array is less than or equal to a specified length.
     /// </summary>
     /// <param name="count">The required length.</param>
     /// <returns>The builder, with the added requirement.</returns>
     [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local", Justification = "Intentional.")]
-    public JsonArrayMatcherBuilder WithNoMoreThanCount(long count) => WithCount(c =>
+    public JsonArrayMatcherBuilder WithLessThanOrEqualCount(int count)
     {
-        Assert.InRange(c, 0, count);
-        return true;
-    });
+        _matchers.Add(array =>
+        {
+            array
+                .Should().HaveCountLessThanOrEqualTo(count);
+
+            return true;
+        });
+
+        return this;
+    }
 
     /// <summary>
     /// Adds a requirement that any element matches the given element builder.
@@ -107,24 +110,10 @@ public class JsonArrayMatcherBuilder
         elementMatcherBuilder?.Invoke(elementMatcher);
 
         var matcher = elementMatcher.Build();
-        _matchers.Add(j =>
+        _matchers.Add(array =>
         {
-            var anyMatch = j.Any(e =>
-            {
-                try
-                {
-                    return matcher.Matches(e);
-                }
-                catch (XunitException)
-                {
-                    return false;
-                }
-            });
-
-            if (!anyMatch)
-            {
-                throw new XunitException("No elements in the JSON array matched.");
-            }
+            array
+                .Should().Contain(e => matcher.Matches(e));
 
             return true;
         });
@@ -159,8 +148,8 @@ public class JsonArrayMatcherBuilder
 
             return matchingCount switch
             {
-                > 1 => throw SingleException.MoreThanOne(matchingCount, "element"),
-                < 1 => throw SingleException.Empty("element"),
+                > 1 => throw SingleException.MoreThanOne(matchingCount, null, "element", Array.Empty<int>()),
+                < 1 => throw SingleException.Empty(null, "element"),
                 _ => true
             };
         });
@@ -185,10 +174,14 @@ public class JsonArrayMatcherBuilder
 
         var matcher = elementMatcher.Build();
 
-        _matchers.Add(j =>
+        _matchers.Add(array =>
         {
-            Assert.InRange(index, 0, j.Count() - 1);
-            return matcher.Matches(j.ElementAt(index));
+            index.Should().BeInRange(0, array.Count() - 1);
+
+            var element = array.ElementAt(index);
+            element.Should().Match<JsonElement>(e => matcher.Matches(e));
+
+            return true;
         });
 
         return this;

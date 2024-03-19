@@ -1,23 +1,7 @@
 //
-//  HttpRequestMessageAssertionsTests.cs
-//
-//  Author:
-//       Jarl Gullberg <jarl.gullberg@gmail.com>
-//
-//  Copyright (c) Jarl Gullberg
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  SPDX-FileName: HttpRequestMessageAssertionsTests.cs
+//  SPDX-FileCopyrightText: Copyright (c) Jarl Gullberg
+//  SPDX-License-Identifier: LGPL-3.0-or-later
 //
 
 using System;
@@ -51,7 +35,7 @@ public static class HttpRequestMessageAssertionsTests
             var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
             request.Content = new StringContent("wooga");
 
-            Assert.Throws<NullException>(() => request.HasNoContent());
+            Assert.Throws<XunitException>(() => request.HasNoContent());
         }
 
         /// <summary>
@@ -79,7 +63,7 @@ public static class HttpRequestMessageAssertionsTests
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
 
-            Assert.Throws<NotNullException>(() => request.HasAuthentication());
+            Assert.Throws<XunitException>(() => request.HasAuthentication());
         }
 
         /// <summary>
@@ -92,7 +76,10 @@ public static class HttpRequestMessageAssertionsTests
             var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "booga");
 
-            Assert.Throws<EqualException>(() => request.HasAuthentication(v => Assert.Equal("unexpected", v.Parameter)));
+            Assert.Throws<EqualException>
+            (
+                () => request.HasAuthentication(v => Assert.Equal("unexpected", v.Parameter))
+            );
         }
 
         /// <summary>
@@ -105,7 +92,7 @@ public static class HttpRequestMessageAssertionsTests
             var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "booga");
 
-            Assert.Throws<TrueException>(() => request.HasAuthentication(v => v.Parameter == "unexpected"));
+            Assert.Throws<XunitException>(() => request.HasAuthentication(v => v.Parameter == "unexpected"));
         }
 
         /// <summary>
@@ -159,7 +146,7 @@ public static class HttpRequestMessageAssertionsTests
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
 
-            Assert.Throws<NotNullException>(() => request.HasJson());
+            Assert.Throws<XunitException>(() => request.HasJson());
         }
 
         /// <summary>
@@ -185,7 +172,7 @@ public static class HttpRequestMessageAssertionsTests
             var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            Assert.Throws<EqualException>(() => request.HasJson(j => j.IsArray()));
+            Assert.Throws<XunitException>(() => request.HasJson(j => j.IsArray()));
         }
 
         /// <summary>
@@ -230,7 +217,7 @@ public static class HttpRequestMessageAssertionsTests
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
 
-            Assert.Throws<NotNullException>(() => request.HasMultipartJsonPayload());
+            Assert.Throws<XunitException>(() => request.HasMultipartJsonPayload());
         }
 
         /// <summary>
@@ -242,7 +229,7 @@ public static class HttpRequestMessageAssertionsTests
             var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
             request.Content = new StringContent("ooga");
 
-            Assert.Throws<IsTypeException>(() => request.HasMultipartJsonPayload());
+            Assert.Throws<XunitException>(() => request.HasMultipartJsonPayload());
         }
 
         /// <summary>
@@ -259,7 +246,7 @@ public static class HttpRequestMessageAssertionsTests
 
             request.Content = multipart;
 
-            Assert.Throws<SingleException>(() => request.HasMultipartJsonPayload());
+            Assert.Throws<XunitException>(() => request.HasMultipartJsonPayload());
         }
 
         /// <summary>
@@ -293,7 +280,7 @@ public static class HttpRequestMessageAssertionsTests
 
             request.Content = multipart;
 
-            Assert.Throws<EqualException>(() => request.HasMultipartJsonPayload(j => j.IsArray()));
+            Assert.Throws<XunitException>(() => request.HasMultipartJsonPayload(j => j.IsArray()));
         }
 
         /// <summary>
@@ -348,7 +335,7 @@ public static class HttpRequestMessageAssertionsTests
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
 
-                Assert.Throws<NotNullException>(() => request.HasMultipartFormData());
+                Assert.Throws<XunitException>(() => request.HasMultipartFormData());
             }
 
             /// <summary>
@@ -360,7 +347,7 @@ public static class HttpRequestMessageAssertionsTests
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
                 request.Content = new StringContent("fail");
 
-                Assert.Throws<IsTypeException>(() => request.HasMultipartFormData());
+                Assert.Throws<XunitException>(() => request.HasMultipartFormData());
             }
         }
 
@@ -381,7 +368,7 @@ public static class HttpRequestMessageAssertionsTests
 
                 request.Content = multipart;
 
-                Assert.Throws<ContainsException>(() => request.HasMultipartFormData("value", "something"));
+                Assert.Throws<XunitException>(() => request.HasMultipartFormData("value", "something"));
             }
 
             /// <summary>
@@ -397,7 +384,7 @@ public static class HttpRequestMessageAssertionsTests
 
                 request.Content = multipart;
 
-                Assert.Throws<IsTypeException>(() => request.HasMultipartFormData("value", "something"));
+                Assert.Throws<XunitException>(() => request.HasMultipartFormData("value", "something"));
             }
 
             /// <summary>
@@ -413,7 +400,7 @@ public static class HttpRequestMessageAssertionsTests
 
                 request.Content = multipart;
 
-                Assert.Throws<EqualException>(() => request.HasMultipartFormData("value", "something"));
+                Assert.Throws<XunitException>(() => request.HasMultipartFormData("value", "something"));
             }
 
             /// <summary>
@@ -447,7 +434,7 @@ public static class HttpRequestMessageAssertionsTests
 
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
 
-                Assert.Throws<NotNullException>(() => request.HasMultipartFormData("file", "filename.txt", stream));
+                Assert.Throws<XunitException>(() => request.HasMultipartFormData("file", "filename.txt", stream));
             }
 
             /// <summary>
@@ -461,7 +448,7 @@ public static class HttpRequestMessageAssertionsTests
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
                 request.Content = new StringContent("fail");
 
-                Assert.Throws<IsTypeException>(() => request.HasMultipartFormData("file", "filename.txt", stream));
+                Assert.Throws<XunitException>(() => request.HasMultipartFormData("file", "filename.txt", stream));
             }
 
             /// <summary>
@@ -479,7 +466,7 @@ public static class HttpRequestMessageAssertionsTests
 
                 request.Content = multipart;
 
-                Assert.Throws<ContainsException>(() => request.HasMultipartFormData("file", "filename.txt", stream));
+                Assert.Throws<XunitException>(() => request.HasMultipartFormData("file", "filename.txt", stream));
             }
 
             /// <summary>
@@ -498,7 +485,7 @@ public static class HttpRequestMessageAssertionsTests
 
                 request.Content = multipart;
 
-                Assert.Throws<IsTypeException>(() => request.HasMultipartFormData("file", "filename.txt", stream));
+                Assert.Throws<XunitException>(() => request.HasMultipartFormData("file", "filename.txt", stream));
             }
 
             /// <summary>
@@ -517,7 +504,7 @@ public static class HttpRequestMessageAssertionsTests
 
                 request.Content = multipart;
 
-                Assert.Throws<ContainsException>(() => request.HasMultipartFormData("file", "filename.txt", stream));
+                Assert.Throws<XunitException>(() => request.HasMultipartFormData("file", "filename.txt", stream));
             }
 
             /// <summary>
@@ -536,7 +523,7 @@ public static class HttpRequestMessageAssertionsTests
 
                 request.Content = multipart;
 
-                Assert.Throws<EqualException>(() => request.HasMultipartFormData("file", "filename.txt", stream));
+                Assert.Throws<XunitException>(() => request.HasMultipartFormData("file", "filename.txt", stream));
             }
 
             /// <summary>
@@ -579,7 +566,7 @@ public static class HttpRequestMessageAssertionsTests
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
 
-                Assert.Throws<NotNullException>(() => request.HasUrlEncodedFormData());
+                Assert.Throws<XunitException>(() => request.HasUrlEncodedFormData());
             }
 
             /// <summary>
@@ -591,7 +578,7 @@ public static class HttpRequestMessageAssertionsTests
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
                 request.Content = new StringContent("fail");
 
-                Assert.Throws<IsTypeException>(() => request.HasUrlEncodedFormData());
+                Assert.Throws<XunitException>(() => request.HasUrlEncodedFormData());
             }
 
             /// <summary>
@@ -626,7 +613,7 @@ public static class HttpRequestMessageAssertionsTests
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
                 request.Content = new FormUrlEncodedContent(actual);
 
-                Assert.Throws<ContainsException>(() => request.HasUrlEncodedFormData(new Dictionary<string, string>
+                Assert.Throws<XunitException>(() => request.HasUrlEncodedFormData(new Dictionary<string, string>
                 {
                     { "other", "value" }
                 }));
@@ -646,7 +633,7 @@ public static class HttpRequestMessageAssertionsTests
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
                 request.Content = new FormUrlEncodedContent(actual);
 
-                Assert.Throws<EqualException>(() => request.HasUrlEncodedFormData(new Dictionary<string, string>
+                Assert.Throws<XunitException>(() => request.HasUrlEncodedFormData(new Dictionary<string, string>
                 {
                     { "some", "type" }
                 }));
@@ -668,7 +655,7 @@ public static class HttpRequestMessageAssertionsTests
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
                 request.Content = new FormUrlEncodedContent(actual);
 
-                Assert.Throws<EqualException>(() => request.HasUrlEncodedFormData
+                Assert.Throws<XunitException>(() => request.HasUrlEncodedFormData
                 (
                     new Dictionary<string, string>
                     {
@@ -766,7 +753,7 @@ public static class HttpRequestMessageAssertionsTests
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test");
 
-                Assert.Throws<FalseException>(() => request.HasQueryParameters());
+                Assert.Throws<XunitException>(() => request.HasQueryParameters());
             }
 
             /// <summary>
@@ -794,7 +781,7 @@ public static class HttpRequestMessageAssertionsTests
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test?query=parameter");
 
-                Assert.Throws<ContainsException>(() => request.HasQueryParameters(new Dictionary<string, string>
+                Assert.Throws<XunitException>(() => request.HasQueryParameters(new Dictionary<string, string>
                 {
                     { "other", "value" }
                 }));
@@ -808,7 +795,7 @@ public static class HttpRequestMessageAssertionsTests
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test?some=value");
 
-                Assert.Throws<EqualException>(() => request.HasQueryParameters(new Dictionary<string, string>
+                Assert.Throws<XunitException>(() => request.HasQueryParameters(new Dictionary<string, string>
                 {
                     { "some", "type" }
                 }));
@@ -823,7 +810,7 @@ public static class HttpRequestMessageAssertionsTests
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://unit-test?some=value&other=thing");
 
-                Assert.Throws<EqualException>(() => request.HasQueryParameters
+                Assert.Throws<XunitException>(() => request.HasQueryParameters
                 (
                     new Dictionary<string, string>
                     {

@@ -1,30 +1,14 @@
 //
-//  JsonAssert.cs
-//
-//  Author:
-//       Jarl Gullberg <jarl.gullberg@gmail.com>
-//
-//  Copyright (c) Jarl Gullberg
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  SPDX-FileName: JsonAssert.cs
+//  SPDX-FileCopyrightText: Copyright (c) Jarl Gullberg
+//  SPDX-License-Identifier: LGPL-3.0-or-later
 //
 
 using System;
 using System.Linq;
 using System.Text.Json;
+using FluentAssertions;
 using JetBrains.Annotations;
-using Xunit;
 
 namespace Remora.Rest.Xunit;
 
@@ -66,7 +50,8 @@ public static class JsonAssert
     {
         assertOptions ??= JsonAssertOptions.Default;
 
-        Assert.Equal(expected.ValueKind, actual.ValueKind);
+        actual.ValueKind
+            .Should().Be(expected.ValueKind);
 
         switch (expected.ValueKind)
         {
@@ -88,7 +73,8 @@ public static class JsonAssert
                         }
                     }
 
-                    Assert.Single(actualElements, ae => ae.NameEquals(expectedElement.Name));
+                    actualElements
+                        .Should().ContainSingle(e => e.NameEquals(expectedElement.Name));
 
                     var matchingElement = actualElements.Single(ae => ae.NameEquals(expectedElement.Name));
                     Equivalent(expectedElement.Value, matchingElement.Value, assertOptions);
@@ -103,7 +89,7 @@ public static class JsonAssert
                     .Where(e => !assertOptions.AllowSkip(e))
                     .ToList();
 
-                Assert.Equal(expectedElements.Count, actualElements.Count);
+                actualElements.Should().HaveSameCount(expectedElements);
 
                 for (var i = 0; i < expectedElements.Count; ++i)
                 {
@@ -114,18 +100,18 @@ public static class JsonAssert
             }
             case JsonValueKind.String:
             {
-                Assert.Equal(expected.GetString(), actual.GetString());
+                actual.GetString().Should().BeEquivalentTo(expected.GetString());
                 break;
             }
             case JsonValueKind.Number:
             {
-                Assert.Equal(expected.GetDouble(), actual.GetDouble());
+                actual.GetDouble().Should().Be(expected.GetDouble());
                 break;
             }
             case JsonValueKind.True:
             case JsonValueKind.False:
             {
-                Assert.Equal(expected.GetBoolean(), actual.GetBoolean());
+                actual.GetBoolean().Should().Be(expected.GetBoolean());
                 break;
             }
             case JsonValueKind.Undefined:

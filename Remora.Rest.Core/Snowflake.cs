@@ -1,23 +1,7 @@
 //
-//  Snowflake.cs
-//
-//  Author:
-//       Jarl Gullberg <jarl.gullberg@gmail.com>
-//
-//  Copyright (c) Jarl Gullberg
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  SPDX-FileName: Snowflake.cs
+//  SPDX-FileCopyrightText: Copyright (c) Jarl Gullberg
+//  SPDX-License-Identifier: LGPL-3.0-or-later
 //
 
 using System;
@@ -33,7 +17,7 @@ namespace Remora.Rest.Core;
 /// See <a href="https://en.wikipedia.org/wiki/Snowflake_ID"/> for more information.
 /// </remarks>
 [PublicAPI]
-public readonly struct Snowflake : IEquatable<Snowflake>, IComparable<Snowflake>
+public readonly struct Snowflake : IEquatable<Snowflake>, IComparable<Snowflake>, IEquatable<ulong>, IComparable<ulong>
 {
     /// <summary>
     /// Holds the epoch of the snowflake.
@@ -114,52 +98,41 @@ public readonly struct Snowflake : IEquatable<Snowflake>, IComparable<Snowflake>
     }
 
     /// <inheritdoc/>
-    public override string ToString()
-    {
-        return this.Value.ToString();
-    }
+    public bool Equals(Snowflake other) => this.Value == other.Value;
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj)
-    {
-        return obj is Snowflake other && Equals(other);
-    }
+    public int CompareTo(Snowflake other) => this.Value.CompareTo(other.Value);
+
+    /// <inheritdoc />
+    public bool Equals(ulong other) => this.Value == other;
+
+    /// <inheritdoc />
+    public int CompareTo(ulong other) => this.Value.CompareTo(other);
 
     /// <inheritdoc/>
-    public bool Equals(Snowflake other)
-    {
-        return this.Value == other.Value;
-    }
+    public override bool Equals(object? obj) => obj is Snowflake other && Equals(other);
 
     /// <inheritdoc/>
-    public override int GetHashCode()
-    {
-        return this.Value.GetHashCode();
-    }
+    public override int GetHashCode() => this.Value.GetHashCode();
 
     /// <inheritdoc/>
-    public int CompareTo(Snowflake other)
-    {
-        return this.Value.CompareTo(other.Value);
-    }
+    public override string ToString() => this.Value.ToString();
 
     /// <summary>
-    /// Compares two snowflakes, for equality.
+    /// Compares two snowflakes for equality.
     /// </summary>
     /// <param name="left">The left operand.</param>
     /// <param name="right">The right operand.</param>
     /// <returns>true if the operands are equal, false otherwise.</returns>
-    public static bool operator ==(Snowflake left, Snowflake right)
-        => left.Equals(right);
+    public static bool operator ==(Snowflake left, Snowflake right) => left.Equals(right);
 
     /// <summary>
-    /// Compares two snowflakes, for inequality.
+    /// Compares two snowflakes for inequality.
     /// </summary>
     /// <param name="left">The left operand.</param>
     /// <param name="right">The right operand.</param>
     /// <returns>false if the operands are equal, true otherwise.</returns>
-    public static bool operator !=(Snowflake left, Snowflake right)
-        => !left.Equals(right);
+    public static bool operator !=(Snowflake left, Snowflake right) => !left.Equals(right);
 
     /// <summary>
     /// Compares two snowflakes, determining whether the left operand is considered less than the right operand.
@@ -170,10 +143,7 @@ public readonly struct Snowflake : IEquatable<Snowflake>, IComparable<Snowflake>
     /// <param name="left">The left operand.</param>
     /// <param name="right">The right operand.</param>
     /// <returns>true if the relationship holds; otherwise, false.</returns>
-    public static bool operator <(Snowflake left, Snowflake right)
-    {
-        return left.CompareTo(right) < 0;
-    }
+    public static bool operator <(Snowflake left, Snowflake right) => left.CompareTo(right) < 0;
 
     /// <summary>
     /// Compares two snowflakes, determining whether the left operand is considered greater than the right operand.
@@ -184,10 +154,7 @@ public readonly struct Snowflake : IEquatable<Snowflake>, IComparable<Snowflake>
     /// <param name="left">The left operand.</param>
     /// <param name="right">The right operand.</param>
     /// <returns>true if the relationship holds; otherwise, false.</returns>
-    public static bool operator >(Snowflake left, Snowflake right)
-    {
-        return left.CompareTo(right) > 0;
-    }
+    public static bool operator >(Snowflake left, Snowflake right) => left.CompareTo(right) > 0;
 
     /// <summary>
     /// Compares two snowflakes, determining whether the left operand is considered less than or equal to the right
@@ -198,10 +165,7 @@ public readonly struct Snowflake : IEquatable<Snowflake>, IComparable<Snowflake>
     /// <param name="left">The left operand.</param>
     /// <param name="right">The right operand.</param>
     /// <returns>true if the relationship holds; otherwise, false.</returns>
-    public static bool operator <=(Snowflake left, Snowflake right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
+    public static bool operator <=(Snowflake left, Snowflake right) => left.CompareTo(right) <= 0;
 
     /// <summary>
     /// Compares two snowflakes, determining whether the left operand is considered greater than or equal to the
@@ -212,8 +176,125 @@ public readonly struct Snowflake : IEquatable<Snowflake>, IComparable<Snowflake>
     /// <param name="left">The left operand.</param>
     /// <param name="right">The right operand.</param>
     /// <returns>true if the relationship holds; otherwise, false.</returns>
-    public static bool operator >=(Snowflake left, Snowflake right)
-    {
-        return left.CompareTo(right) >= 0;
-    }
+    public static bool operator >=(Snowflake left, Snowflake right) => left.CompareTo(right) >= 0;
+
+    /// <summary>
+    /// Compares a snowflake with a ulong for equality.
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns>true if the operands are equal, false otherwise.</returns>
+    public static bool operator ==(Snowflake left, ulong right) => left.Equals(right);
+
+    /// <summary>
+    /// Compares a snowflake with a ulong for inequality.
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns>false if the operands are equal, true otherwise.</returns>
+    public static bool operator !=(Snowflake left, ulong right) => !left.Equals(right);
+
+    /// <summary>
+    /// Compares a snowflake with a ulong, determining whether the left operand is considered less than the right
+    /// operand. This is generally based on time. An earlier snowflake will compare as less than another, and a
+    /// snowflake with a higher increment will compare as more than another (provided they are from the same worker and
+    /// same time).
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns>true if the relationship holds; otherwise, false.</returns>
+    public static bool operator <(Snowflake left, ulong right) => left.CompareTo(right) < 0;
+
+    /// <summary>
+    /// Compares a snowflake with a ulong, determining whether the left operand is considered greater than the right
+    /// operand. This is generally based on time. An earlier snowflake will compare as less than another, and a
+    /// snowflake with a higher increment will compare as more than another (provided they are from the same worker and
+    /// same time).
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns>true if the relationship holds; otherwise, false.</returns>
+    public static bool operator >(Snowflake left, ulong right) => left.CompareTo(right) > 0;
+
+    /// <summary>
+    /// Compares a snowflake with a ulong, determining whether the left operand is considered less than or equal to the
+    /// right operand. This is generally based on time. An earlier snowflake will compare as less than another, and a
+    /// snowflake with a higher increment will compare as more than another (provided they are from the same worker
+    /// and same time).
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns>true if the relationship holds; otherwise, false.</returns>
+    public static bool operator <=(Snowflake left, ulong right) => left.CompareTo(right) <= 0;
+
+    /// <summary>
+    /// Compares a snowflake with a ulong, determining whether the left operand is considered greater than or equal to
+    /// the right operand. This is generally based on time. An earlier snowflake will compare as less than another, and
+    /// a snowflake with a higher increment will compare as more than another (provided they are from the same
+    /// worker and same time).
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns>true if the relationship holds; otherwise, false.</returns>
+    public static bool operator >=(Snowflake left, ulong right) => left.CompareTo(right) >= 0;
+
+    /// <summary>
+    /// Compares a ulong with a snowflake for equality.
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns>true if the operands are equal, false otherwise.</returns>
+    public static bool operator ==(ulong left, Snowflake right) => left.Equals(right.Value);
+
+    /// <summary>
+    /// Compares a ulong with a snowflake for inequality.
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns>false if the operands are equal, true otherwise.</returns>
+    public static bool operator !=(ulong left, Snowflake right) => !left.Equals(right.Value);
+
+    /// <summary>
+    /// Compares a ulong with a snowflake, determining whether the left operand is considered less than the right
+    /// operand. This is generally based on time. An earlier snowflake will compare as less than another, and a
+    /// snowflake with a higher increment will compare as more than another (provided they are from the same worker and
+    /// same time).
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns>true if the relationship holds; otherwise, false.</returns>
+    public static bool operator <(ulong left, Snowflake right) => left.CompareTo(right.Value) < 0;
+
+    /// <summary>
+    /// Compares a ulong with a snowflake, determining whether the left operand is considered greater than the right
+    /// operand. This is generally based on time. An earlier snowflake will compare as less than another, and a
+    /// snowflake with a higher increment will compare as more than another (provided they are from the same worker and
+    /// same time).
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns>true if the relationship holds; otherwise, false.</returns>
+    public static bool operator >(ulong left, Snowflake right) => left.CompareTo(right.Value) > 0;
+
+    /// <summary>
+    /// Compares a ulong with a snowflake, determining whether the left operand is considered less than or equal to the
+    /// right operand. This is generally based on time. An earlier snowflake will compare as less than another, and a
+    /// snowflake with a higher increment will compare as more than another (provided they are from the same worker
+    /// and same time).
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns>true if the relationship holds; otherwise, false.</returns>
+    public static bool operator <=(ulong left, Snowflake right) => left.CompareTo(right.Value) <= 0;
+
+    /// <summary>
+    /// Compares a ulong with a snowflake, determining whether the left operand is considered greater than or equal to
+    /// the right operand. This is generally based on time. An earlier snowflake will compare as less than another, and
+    /// a snowflake with a higher increment will compare as more than another (provided they are from the same
+    /// worker and same time).
+    /// </summary>
+    /// <param name="left">The left operand.</param>
+    /// <param name="right">The right operand.</param>
+    /// <returns>true if the relationship holds; otherwise, false.</returns>
+    public static bool operator >=(ulong left, Snowflake right) => left.CompareTo(right.Value) >= 0;
 }

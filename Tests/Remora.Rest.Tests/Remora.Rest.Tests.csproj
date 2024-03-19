@@ -1,4 +1,4 @@
-<Project Sdk="Remora.Tests.Sdk/1.0.0">
+<Project Sdk="Remora.Tests.Sdk">
 
     <ItemGroup>
       <ProjectReference Include="..\..\Remora.Rest.Xunit\Remora.Rest.Xunit.csproj" />
@@ -22,6 +22,15 @@
       </Compile>
       <Compile Update="Data\DataObjects\INonConventionalData.cs">
         <DependentUpon>NonConventionalData.cs</DependentUpon>
+      </Compile>
+      <Compile Update="Data\DataObjects\IExcludedData.cs">
+        <DependentUpon>ExcludedData.cs</DependentUpon>
+      </Compile>
+      <Compile Update="Data\DataObjects\IConstructorArgumentData.cs">
+        <DependentUpon>ConstructorArgumentData.cs</DependentUpon>
+      </Compile>
+      <Compile Update="Data\DataObjects\IOldStyleData.cs">
+        <DependentUpon>OldStyleData.cs</DependentUpon>
       </Compile>
     </ItemGroup>
 

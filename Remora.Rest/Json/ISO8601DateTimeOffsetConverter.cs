@@ -1,34 +1,20 @@
 //
-//  ISO8601DateTimeOffsetConverter.cs
-//
-//  Author:
-//       Jarl Gullberg <jarl.gullberg@gmail.com>
-//
-//  Copyright (c) Jarl Gullberg
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  SPDX-FileName: ISO8601DateTimeOffsetConverter.cs
+//  SPDX-FileCopyrightText: Copyright (c) Jarl Gullberg
+//  SPDX-License-Identifier: LGPL-3.0-or-later
 //
 
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using JetBrains.Annotations;
 
 namespace Remora.Rest.Json;
 
 /// <summary>
 /// Converts instances of the <see cref="DateTimeOffset"/> struct to and from an ISO8601 representation in JSON.
 /// </summary>
+[PublicAPI]
 public class ISO8601DateTimeOffsetConverter : JsonConverter<DateTimeOffset>
 {
     /// <inheritdoc />
@@ -56,6 +42,9 @@ public class ISO8601DateTimeOffsetConverter : JsonConverter<DateTimeOffset>
     public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
     {
         var offset = value.Offset;
-        writer.WriteStringValue(value.ToString($"yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'ffffff'+'{offset.Hours:D2}':'{offset.Minutes:D2}"));
+        writer.WriteStringValue
+        (
+            value.ToString($"yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'ffffff'+'{offset.Hours:D2}':'{offset.Minutes:D2}")
+        );
     }
 }

@@ -1,18 +1,24 @@
-<Project Sdk="Remora.Sdk/1.0.0">
+<Project Sdk="Remora.Sdk">
     <PropertyGroup>
-        <VersionPrefix>3.0.0</VersionPrefix>
+        <VersionPrefix>3.3.2</VersionPrefix>
         <Description>Core functionality of basic REST-focused API tooling, allowing you to easily build new wrappers around your favourite services.</Description>
         <PackageReleaseNotes>
-            Major speed and allocation improvements to DataObjectConverter.
+            Update nuget packages and SDK.
         </PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="JsonDocumentPath" Version="1.0.3" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
-        <PackageReference Include="OneOf" Version="3.0.223" />
-        <PackageReference Include="Remora.Results" Version="7.2.2" />
-        <PackageReference Include="System.Text.Json" Version="6.0.5" />
+        <PackageReference Include="JsonDocumentPath" />
+        <PackageReference Include="Microsoft.Extensions.Http" />
+        <PackageReference Include="OneOf" />
+        <PackageReference Include="Remora.Results" />
+        <PackageReference Include="System.Text.Json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>Remora.Rest.Tests</_Parameter1>
+        </AssemblyAttribute>
     </ItemGroup>
 
     <ItemGroup>

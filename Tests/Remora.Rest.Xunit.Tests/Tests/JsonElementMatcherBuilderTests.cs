@@ -1,23 +1,7 @@
 //
-//  JsonElementMatcherBuilderTests.cs
-//
-//  Author:
-//       Jarl Gullberg <jarl.gullberg@gmail.com>
-//
-//  Copyright (c) Jarl Gullberg
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  SPDX-FileName: JsonElementMatcherBuilderTests.cs
+//  SPDX-FileCopyrightText: Copyright (c) Jarl Gullberg
+//  SPDX-License-Identifier: LGPL-3.0-or-later
 //
 
 using System;
@@ -77,7 +61,7 @@ public class JsonElementMatcherBuilderTests
                 .IsObject()
                 .Build();
 
-            Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+            Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
         }
 
         /// <summary>
@@ -93,7 +77,7 @@ public class JsonElementMatcherBuilderTests
                 .IsObject(o => o.WithProperty("missing_property"))
                 .Build();
 
-            Assert.Throws<ContainsException>(() => matcher.Matches(document.RootElement));
+            Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
         }
 
         /// <summary>
@@ -156,7 +140,7 @@ public class JsonElementMatcherBuilderTests
                 .IsArray()
                 .Build();
 
-            Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+            Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
         }
 
         /// <summary>
@@ -172,7 +156,7 @@ public class JsonElementMatcherBuilderTests
                 .IsArray(a => a.WithCount(1))
                 .Build();
 
-            Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+            Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
         }
 
         /// <summary>
@@ -246,7 +230,7 @@ public class JsonElementMatcherBuilderTests
                 .IsValue(valueKind)
                 .Build();
 
-            Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+            Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
         }
     }
 
@@ -293,7 +277,7 @@ public class JsonElementMatcherBuilderTests
                 .IsNull()
                 .Build();
 
-            Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+            Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
         }
     }
 
@@ -341,7 +325,7 @@ public class JsonElementMatcherBuilderTests
                 .IsBoolean()
                 .Build();
 
-            Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+            Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
         }
     }
 
@@ -389,7 +373,7 @@ public class JsonElementMatcherBuilderTests
                 .IsNumber()
                 .Build();
 
-            Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+            Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
         }
     }
 
@@ -436,7 +420,7 @@ public class JsonElementMatcherBuilderTests
                 .IsString()
                 .Build();
 
-            Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+            Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
         }
     }
 
@@ -481,7 +465,7 @@ public class JsonElementMatcherBuilderTests
                     .Is((sbyte)1)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -503,7 +487,7 @@ public class JsonElementMatcherBuilderTests
                     .Is((sbyte)0)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -523,7 +507,7 @@ public class JsonElementMatcherBuilderTests
                     .Is((sbyte)0)
                     .Build();
 
-                Assert.Throws<IsTypeException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -563,7 +547,7 @@ public class JsonElementMatcherBuilderTests
                     .Is((short)1)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -585,7 +569,7 @@ public class JsonElementMatcherBuilderTests
                     .Is((short)0)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -605,7 +589,7 @@ public class JsonElementMatcherBuilderTests
                     .Is((short)0)
                     .Build();
 
-                Assert.Throws<IsTypeException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -645,7 +629,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(1)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -667,7 +651,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(0)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -687,7 +671,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(0)
                     .Build();
 
-                Assert.Throws<IsTypeException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -727,7 +711,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(1L)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -749,7 +733,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(0L)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -769,7 +753,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(0L)
                     .Build();
 
-                Assert.Throws<IsTypeException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -809,7 +793,7 @@ public class JsonElementMatcherBuilderTests
                     .Is((byte)1)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -831,7 +815,7 @@ public class JsonElementMatcherBuilderTests
                     .Is((byte)0)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -851,7 +835,7 @@ public class JsonElementMatcherBuilderTests
                     .Is((byte)0)
                     .Build();
 
-                Assert.Throws<IsTypeException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -891,7 +875,7 @@ public class JsonElementMatcherBuilderTests
                     .Is((ushort)1)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -913,7 +897,7 @@ public class JsonElementMatcherBuilderTests
                     .Is((ushort)0)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -933,7 +917,7 @@ public class JsonElementMatcherBuilderTests
                     .Is((ushort)0)
                     .Build();
 
-                Assert.Throws<IsTypeException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -973,7 +957,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(1U)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -995,7 +979,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(0U)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1015,7 +999,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(0U)
                     .Build();
 
-                Assert.Throws<IsTypeException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -1055,7 +1039,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(1UL)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1077,7 +1061,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(0UL)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1097,7 +1081,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(0UL)
                     .Build();
 
-                Assert.Throws<IsTypeException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -1137,7 +1121,7 @@ public class JsonElementMatcherBuilderTests
                     .Is("not string")
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1161,7 +1145,7 @@ public class JsonElementMatcherBuilderTests
                     .Is("string")
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -1201,7 +1185,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(false)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1223,7 +1207,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(true)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -1263,7 +1247,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(1M)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1285,7 +1269,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(1M)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1303,7 +1287,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(1M)
                     .Build();
 
-                Assert.Throws<IsTypeException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -1343,7 +1327,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(1f)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1365,7 +1349,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(1f)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -1405,7 +1389,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(1d)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1427,7 +1411,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(1d)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -1471,7 +1455,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(System.Guid.NewGuid())
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1495,7 +1479,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(System.Guid.NewGuid())
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1513,7 +1497,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(System.Guid.NewGuid())
                     .Build();
 
-                Assert.Throws<IsTypeException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -1557,7 +1541,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(dateTime + TimeSpan.FromDays(1))
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1581,7 +1565,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(System.DateTime.Today)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1599,7 +1583,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(System.DateTime.UtcNow)
                     .Build();
 
-                Assert.Throws<IsTypeException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -1609,8 +1593,8 @@ public class JsonElementMatcherBuilderTests
         public class DateTimeOffset
         {
             /// <summary>
-            /// Tests whether the <see cref="JsonElementMatcherBuilder.Is(System.DateTimeOffset)"/> method returns true for an
-            /// element that is an <see cref="System.DateTimeOffset"/> value, equal to the value under test.
+            /// Tests whether the <see cref="JsonElementMatcherBuilder.Is(System.DateTimeOffset)"/> method returns true
+            /// for an element that is an <see cref="System.DateTimeOffset"/> value, equal to the value under test.
             /// </summary>
             [Fact]
             public void ReturnsTrueForDateTimeOffsetElementWithEqualValue()
@@ -1628,8 +1612,8 @@ public class JsonElementMatcherBuilderTests
             }
 
             /// <summary>
-            /// Tests whether the <see cref="JsonElementMatcherBuilder.Is(System.DateTimeOffset)"/> method asserts for an
-            /// element that is an <see cref="System.DateTimeOffset"/> value, not equal to the value under test.
+            /// Tests whether the <see cref="JsonElementMatcherBuilder.Is(System.DateTimeOffset)"/> method asserts for
+            /// an element that is an <see cref="System.DateTimeOffset"/> value, not equal to the value under test.
             /// </summary>
             [Fact]
             public void AssertsForDateTimeOffsetElementWithUnequalValue()
@@ -1643,12 +1627,12 @@ public class JsonElementMatcherBuilderTests
                     .Is(dateTimeOffset + TimeSpan.FromDays(1))
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
-            /// Tests whether the <see cref="JsonElementMatcherBuilder.Is(System.DateTimeOffset)"/> method asserts for an
-            /// element that is not an <see cref="System.DateTimeOffset"/>.
+            /// Tests whether the <see cref="JsonElementMatcherBuilder.Is(System.DateTimeOffset)"/> method asserts for
+            /// an element that is not an <see cref="System.DateTimeOffset"/>.
             /// </summary>
             /// <param name="json">The JSON to test.</param>
             [Theory]
@@ -1667,12 +1651,12 @@ public class JsonElementMatcherBuilderTests
                     .Is(System.DateTimeOffset.UtcNow)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
-            /// Tests whether the <see cref="JsonElementMatcherBuilder.Is(System.DateTimeOffset)"/> method asserts for an
-            /// element that is not representable as an <see cref="System.DateTimeOffset"/>.
+            /// Tests whether the <see cref="JsonElementMatcherBuilder.Is(System.DateTimeOffset)"/> method asserts for
+            /// an element that is not representable as an <see cref="System.DateTimeOffset"/>.
             /// </summary>
             /// <param name="json">The JSON to test.</param>
             [Theory]
@@ -1685,7 +1669,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(System.DateTimeOffset.UtcNow)
                     .Build();
 
-                Assert.Throws<IsTypeException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
 
@@ -1695,8 +1679,8 @@ public class JsonElementMatcherBuilderTests
         public class ByteEnumeration
         {
             /// <summary>
-            /// Tests whether the <see cref="JsonElementMatcherBuilder.Is(IEnumerable{byte})"/> method returns true for an
-            /// element that is an <see cref="IEnumerable{T}"/> value, equal to the value under test.
+            /// Tests whether the <see cref="JsonElementMatcherBuilder.Is(IEnumerable{byte})"/> method returns true for
+            /// an element that is an <see cref="IEnumerable{T}"/> value, equal to the value under test.
             /// </summary>
             [Fact]
             public void ReturnsTrueForByteEnumerationElementWithEqualValue()
@@ -1751,7 +1735,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(bytes)
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1775,7 +1759,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(Array.Empty<byte>())
                     .Build();
 
-                Assert.Throws<EqualException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
 
             /// <summary>
@@ -1793,7 +1777,7 @@ public class JsonElementMatcherBuilderTests
                     .Is(Array.Empty<byte>())
                     .Build();
 
-                Assert.Throws<IsTypeException>(() => matcher.Matches(document.RootElement));
+                Assert.Throws<XunitException>(() => matcher.Matches(document.RootElement));
             }
         }
     }

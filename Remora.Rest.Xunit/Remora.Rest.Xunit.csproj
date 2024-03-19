@@ -1,20 +1,24 @@
-<Project Sdk="Remora.Sdk/1.0.0">
+<Project Sdk="Remora.Sdk">
+
+    <!-- Override target frameworks -->
     <PropertyGroup>
-        <VersionPrefix>1.2.1</VersionPrefix>
+        <LibraryFrameworks>$(ExecutableFrameworks)</LibraryFrameworks>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <VersionPrefix>3.0.3</VersionPrefix>
         <Description>Supporting types for writing expressive unit tests of REST-focused API wrappers, allowing simple and direct testing of expected clientside behaviour.
         </Description>
         <PackageReleaseNotes>
-            Drop .NET 5.0 as a target.
-            Add assertions for HttpRequestMessage to match the full request pipeline.
-            Add assertions for UrlEncodedFormData.
-            Add assertions for query string parameters.
+            Fix build for .NET 8.
         </PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="RichardSzalay.MockHttp" Version="6.0.0" />
-        <PackageReference Include="xunit.assert" Version="2.4.2" />
-        <PackageReference Include="System.Text.Json" Version="6.0.5" />
+        <PackageReference Include="FluentAssertions" PrivateAssets="contentfiles;analyzers;build;compile" />
+        <PackageReference Include="RichardSzalay.MockHttp" />
+        <PackageReference Include="xunit.assert" />
+        <PackageReference Include="System.Text.Json" />
     </ItemGroup>
 
     <ItemGroup>

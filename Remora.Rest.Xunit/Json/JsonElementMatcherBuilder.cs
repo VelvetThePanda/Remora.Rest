@@ -1,32 +1,15 @@
 //
-//  JsonElementMatcherBuilder.cs
-//
-//  Author:
-//       Jarl Gullberg <jarl.gullberg@gmail.com>
-//
-//  Copyright (c) Jarl Gullberg
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  SPDX-FileName: JsonElementMatcherBuilder.cs
+//  SPDX-FileCopyrightText: Copyright (c) Jarl Gullberg
+//  SPDX-License-Identifier: LGPL-3.0-or-later
 //
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using FluentAssertions;
 using JetBrains.Annotations;
-using Xunit;
-using Xunit.Sdk;
 
 namespace Remora.Rest.Xunit.Json;
 
@@ -49,7 +32,7 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.Object, j.ValueKind);
+                j.ValueKind.Should().Be(JsonValueKind.Object);
                 if (objectMatcherBuilder is null)
                 {
                     return true;
@@ -78,7 +61,7 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.Array, j.ValueKind);
+                j.ValueKind.Should().Be(JsonValueKind.Array);
                 if (arrayMatcherBuilder is null)
                 {
                     return true;
@@ -108,7 +91,9 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(valueKind, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(valueKind);
+
                 return valueMatcher is null || valueMatcher(j);
             }
         );
@@ -125,7 +110,9 @@ public class JsonElementMatcherBuilder
     {
         _matchers.Add(j =>
         {
-            Assert.Equal(JsonValueKind.Null, j.ValueKind);
+            j.ValueKind
+                .Should().Be(JsonValueKind.Null);
+
             return true;
         });
 
@@ -142,12 +129,10 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                if (j.ValueKind is JsonValueKind.True or JsonValueKind.False)
-                {
-                    return true;
-                }
+                j.ValueKind
+                    .Should().BeOneOf(JsonValueKind.True, JsonValueKind.False);
 
-                throw new EqualException("True or False", j.ValueKind.ToString());
+                return true;
             }
         );
 
@@ -163,7 +148,9 @@ public class JsonElementMatcherBuilder
     {
         _matchers.Add(j =>
         {
-            Assert.Equal(JsonValueKind.Number, j.ValueKind);
+            j.ValueKind
+                .Should().Be(JsonValueKind.Number);
+
             return true;
         });
 
@@ -179,7 +166,9 @@ public class JsonElementMatcherBuilder
     {
         _matchers.Add(j =>
         {
-            Assert.Equal(JsonValueKind.String, j.ValueKind);
+            j.ValueKind
+                .Should().Be(JsonValueKind.String);
+
             return true;
         });
 
@@ -197,14 +186,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.Number, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.Number);
 
-                if (!j.TryGetSByte(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(SByte), "Number");
-                }
+                j.TryGetSByte(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to a signed byte");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -223,14 +213,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.Number, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.Number);
 
-                if (!j.TryGetInt16(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(Int16), "Number");
-                }
+                j.TryGetInt16(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to a short");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -249,14 +240,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.Number, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.Number);
 
-                if (!j.TryGetInt32(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(Int32), "Number");
-                }
+                j.TryGetInt32(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to an int");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -275,14 +267,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.Number, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.Number);
 
-                if (!j.TryGetInt64(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(Int64), "Number");
-                }
+                j.TryGetInt64(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to a long");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -301,14 +294,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.Number, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.Number);
 
-                if (!j.TryGetByte(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(Byte), "Number");
-                }
+                j.TryGetByte(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to a byte");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -327,14 +321,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.Number, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.Number);
 
-                if (!j.TryGetUInt16(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(UInt16), "Number");
-                }
+                j.TryGetUInt16(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to an ushort");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -353,14 +348,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.Number, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.Number);
 
-                if (!j.TryGetUInt32(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(UInt32), "Number");
-                }
+                j.TryGetUInt32(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to an uint");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -379,14 +375,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.Number, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.Number);
 
-                if (!j.TryGetUInt64(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(UInt64), "Number");
-                }
+                j.TryGetUInt64(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to an ulong");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -405,8 +402,12 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.String, j.ValueKind);
-                Assert.Equal(value, j.GetString());
+                j.ValueKind
+                    .Should().Be(JsonValueKind.String);
+
+                j.GetString()
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -424,7 +425,9 @@ public class JsonElementMatcherBuilder
     {
         _matchers.Add(j =>
         {
-            Assert.Equal(value ? JsonValueKind.True : JsonValueKind.False, j.ValueKind);
+            j.ValueKind
+                .Should().Be(value ? JsonValueKind.True : JsonValueKind.False);
+
             return true;
         });
 
@@ -442,14 +445,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.Number, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.Number);
 
-                if (!j.TryGetDecimal(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(Decimal), "Number");
-                }
+                j.TryGetDecimal(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to a decimal");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -468,14 +472,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.Number, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.Number);
 
-                if (!j.TryGetSingle(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(Single), "Number");
-                }
+                j.TryGetSingle(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to a float");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -494,14 +499,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.Number, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.Number);
 
-                if (!j.TryGetDouble(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(Double), "Number");
-                }
+                j.TryGetDouble(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to a double");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -521,14 +527,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.String, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.String);
 
-                if (!j.TryGetGuid(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(Guid), "Number");
-                }
+                j.TryGetGuid(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to a GUID");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -547,14 +554,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.String, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.String);
 
-                if (!j.TryGetDateTime(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(DateTime), "Number");
-                }
+                j.TryGetDateTime(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to a DateTime");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -573,14 +581,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.String, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.String);
 
-                if (!j.TryGetDateTimeOffset(out var actualValue))
-                {
-                    throw new IsTypeException(nameof(DateTimeOffset), "Number");
-                }
+                j.TryGetDateTimeOffset(out var actualValue)
+                    .Should().BeTrue("because the value should be convertible to a DateTimeOffset");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().Be(value);
+
                 return true;
             }
         );
@@ -599,14 +608,15 @@ public class JsonElementMatcherBuilder
         (
             j =>
             {
-                Assert.Equal(JsonValueKind.String, j.ValueKind);
+                j.ValueKind
+                    .Should().Be(JsonValueKind.String);
 
-                if (!j.TryGetBytesFromBase64(out var actualValue))
-                {
-                    throw new IsTypeException("IEnumerable<byte>", "Number");
-                }
+                j.TryGetBytesFromBase64(out var actualValue)
+                    .Should().BeTrue("because the value should be a base64-encoded byte array");
 
-                Assert.Equal(value, actualValue);
+                actualValue
+                    .Should().BeEquivalentTo(value);
+
                 return true;
             }
         );

@@ -1,23 +1,7 @@
 //
-//  StringEnumConverter.cs
-//
-//  Author:
-//       Jarl Gullberg <jarl.gullberg@gmail.com>
-//
-//  Copyright (c) Jarl Gullberg
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  SPDX-FileName: StringEnumConverter.cs
+//  SPDX-FileCopyrightText: Copyright (c) Jarl Gullberg
+//  SPDX-License-Identifier: LGPL-3.0-or-later
 //
 
 using System;
@@ -132,24 +116,5 @@ public class StringEnumConverter<TEnum> : JsonConverter<TEnum>
         }
 
         writer.WriteStringValue(_enumsToNames[value]);
-    }
-
-    /// <inheritdoc />
-    public override TEnum ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        => this.Read(ref reader, typeToConvert, options);
-
-    /// <inheritdoc/>
-    public override void WriteAsPropertyName(Utf8JsonWriter writer, TEnum value, JsonSerializerOptions options)
-    {
-        if (_asInteger)
-        {
-            writer.WritePropertyName(Enum.GetUnderlyingType(typeof(TEnum)).IsUnsigned()
-                ? Convert.ToUInt64(value).ToString()
-                : Convert.ToInt64(value).ToString());
-
-            return;
-        }
-
-        writer.WritePropertyName(_enumsToNames[value]);
     }
 }

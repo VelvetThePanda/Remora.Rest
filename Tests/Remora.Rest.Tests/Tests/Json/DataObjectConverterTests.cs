@@ -1,23 +1,7 @@
 //
-//  DataObjectConverterTests.cs
-//
-//  Author:
-//       Jarl Gullberg <jarl.gullberg@gmail.com>
-//
-//  Copyright (c) Jarl Gullberg
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//  SPDX-FileName: DataObjectConverterTests.cs
+//  SPDX-FileCopyrightText: Copyright (c) Jarl Gullberg
+//  SPDX-License-Identifier: LGPL-3.0-or-later
 //
 
 using System.Text.Json;
@@ -441,7 +425,7 @@ public class DataObjectConverterTests
 
         var jsonOptions = services.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
 
-        SimpleData value = new SimpleData("booga");
+        var value = new SimpleData("booga");
         var expectedPayload = JsonDocument.Parse("{ \"value\": \"booga\" }");
 
         var serialized = JsonDocument.Parse(JsonSerializer.Serialize(value, jsonOptions));
@@ -470,5 +454,328 @@ public class DataObjectConverterTests
         var value = JsonSerializer.Deserialize<SimpleData>(payload, jsonOptions);
         Assert.NotNull(value);
         Assert.Equal("booga", value.Value);
+    }
+
+    /// <summary>
+    /// Tests whether the converter fails correctly when deserializing data record with an excluded member.
+    /// </summary>
+    [Fact]
+    public void CannotDeserializeDataWithExcludedMemberWithoutDefaultValue()
+    {
+        var services = new ServiceCollection()
+            .Configure<JsonSerializerOptions>
+            (
+                json =>
+                {
+                    json.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+                    json.AddDataObjectConverter<IExcludedData, ExcludedData>()
+                        .ExcludeWhenSerializing(d => d.DoNotSerialize);
+                })
+            .BuildServiceProvider();
+
+        var jsonOptions = services.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
+        var payload = "{ \"serialize\": \"booga\" }";
+
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<IExcludedData>(payload, jsonOptions));
+    }
+
+    /// <summary>
+    /// Tests whether the converter can correctly serialize a data record with an excluded member.
+    /// </summary>
+    [Fact]
+    public void CanSerializeDataWithExcludedMemberWithoutDefaultValue()
+    {
+        var services = new ServiceCollection()
+            .Configure<JsonSerializerOptions>
+            (
+                json =>
+                {
+                    json.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+                    json.AddDataObjectConverter<IExcludedData, ExcludedData>()
+                        .ExcludeWhenSerializing(d => d.DoNotSerialize);
+                })
+            .BuildServiceProvider();
+
+        var jsonOptions = services.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
+        IExcludedData value = new ExcludedData("booga", "wooga");
+
+        var expectedPayload = JsonDocument.Parse("{ \"serialize\": \"booga\" }");
+
+        var serialized = JsonDocument.Parse(JsonSerializer.Serialize(value, jsonOptions));
+        JsonAssert.Equivalent(expectedPayload, serialized);
+    }
+
+    /// <summary>
+    /// Tests whether the converter can correctly deserialize a data record with an excluded member where the excluded
+    /// member has a default value.
+    /// </summary>
+    [Fact]
+    public void CanDeserializeDataWithExcludedMemberWithDefaultValue()
+    {
+        var services = new ServiceCollection()
+            .Configure<JsonSerializerOptions>
+            (
+                json =>
+                {
+                    json.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+                    json.AddDataObjectConverter<IExcludedData, ExcludedDataWithDefaultValue>()
+                        .ExcludeWhenSerializing(d => d.DoNotSerialize);
+                })
+            .BuildServiceProvider();
+
+        var jsonOptions = services.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
+        var payload = "{ \"serialize\": \"booga\" }";
+
+        var value = JsonSerializer.Deserialize<IExcludedData>(payload, jsonOptions);
+        Assert.NotNull(value);
+        Assert.Equal("booga", value.Serialize);
+        Assert.Equal("value", value.DoNotSerialize);
+    }
+
+    /// <summary>
+    /// Tests whether the converter can correctly serialize a data record with an excluded member where the excluded
+    /// member has a default value.
+    /// </summary>
+    [Fact]
+    public void CanSerializeDataWithExcludedMemberWithDefaultValue()
+    {
+        var services = new ServiceCollection()
+            .Configure<JsonSerializerOptions>
+            (
+                json =>
+                {
+                    json.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+                    json.AddDataObjectConverter<IExcludedData, ExcludedDataWithDefaultValue>()
+                        .ExcludeWhenSerializing(d => d.DoNotSerialize);
+                })
+            .BuildServiceProvider();
+
+        var jsonOptions = services.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
+        IExcludedData value = new ExcludedDataWithDefaultValue("booga");
+
+        var expectedPayload = JsonDocument.Parse("{ \"serialize\": \"booga\" }");
+
+        var serialized = JsonDocument.Parse(JsonSerializer.Serialize(value, jsonOptions));
+        JsonAssert.Equivalent(expectedPayload, serialized);
+    }
+
+    /// <summary>
+    /// Tests whether the converter can correctly deserialize a data record with an excluded member where the excluded
+    /// member is read-only.
+    /// </summary>
+    [Fact]
+    public void CanDeserializeDataWithExcludedMemberWithReadOnlyMember()
+    {
+        var services = new ServiceCollection()
+            .Configure<JsonSerializerOptions>
+            (
+                json =>
+                {
+                    json.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+                    json.AddDataObjectConverter<IExcludedData, ExcludedDataWithReadOnlyMember>()
+                        .ExcludeWhenSerializing(d => d.DoNotSerialize);
+                })
+            .BuildServiceProvider();
+
+        var jsonOptions = services.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
+        var payload = "{ \"serialize\": \"booga\" }";
+
+        var value = JsonSerializer.Deserialize<IExcludedData>(payload, jsonOptions);
+        Assert.NotNull(value);
+        Assert.Equal("booga", value.Serialize);
+        Assert.Equal("value", value.DoNotSerialize);
+    }
+
+    /// <summary>
+    /// Tests whether the converter can correctly serialize a data record with an excluded member where the excluded
+    /// member is read-only.
+    /// </summary>
+    [Fact]
+    public void CanSerializeDataWithExcludedMemberWithReadOnlyMember()
+    {
+        var services = new ServiceCollection()
+            .Configure<JsonSerializerOptions>
+            (
+                json =>
+                {
+                    json.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+                    json.AddDataObjectConverter<IExcludedData, ExcludedDataWithDefaultValue>()
+                        .ExcludeWhenSerializing(d => d.DoNotSerialize);
+                })
+            .BuildServiceProvider();
+
+        var jsonOptions = services.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
+        IExcludedData value = new ExcludedDataWithReadOnlyMember("booga");
+
+        var expectedPayload = JsonDocument.Parse("{ \"serialize\": \"booga\" }");
+
+        var serialized = JsonDocument.Parse(JsonSerializer.Serialize(value, jsonOptions));
+        JsonAssert.Equivalent(expectedPayload, serialized);
+    }
+
+    /// <summary>
+    /// Tests whether the converter can correctly deserialize a data record where data values are sourced from the
+    /// type's primary constructor.
+    /// </summary>
+    [Fact]
+    public void CanDeserializeDataWithConstructorProvidedDefaults()
+    {
+        var services = new ServiceCollection()
+            .Configure<JsonSerializerOptions>
+            (
+                json =>
+                {
+                    json.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+                    json.AddDataObjectConverter<IConstructorArgumentData, ConstructorArgumentData>();
+                })
+            .BuildServiceProvider();
+
+        var jsonOptions = services.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
+        var payload = "{ }";
+
+        var value = JsonSerializer.Deserialize<IConstructorArgumentData>(payload, jsonOptions);
+        Assert.NotNull(value);
+
+        Assert.Equal(0, value.ValueType);
+        Assert.Null(value.NullableValueType);
+        Assert.Equal(default, value.OptionalValueType);
+        Assert.Equal(default, value.OptionalNullableValueType);
+
+        Assert.Equal(string.Empty, value.ReferenceType);
+        Assert.Null(value.NullableReferenceType);
+        Assert.Equal(default, value.OptionalReferenceType);
+        Assert.Equal(default, value.OptionalNullableReferenceType);
+    }
+
+    /// <summary>
+    /// Tests whether the converter can correctly serialize a data record where data values are sourced from the
+    /// type's primary constructor.
+    /// </summary>
+    [Fact]
+    public void CanSerializeDataWithConstructorProvidedDefaults()
+    {
+        var services = new ServiceCollection()
+            .Configure<JsonSerializerOptions>
+            (
+                json =>
+                {
+                    json.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+                    json.AddDataObjectConverter<IConstructorArgumentData, ConstructorArgumentData>();
+                })
+            .BuildServiceProvider();
+
+        var jsonOptions = services.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
+
+        IConstructorArgumentData value = new ConstructorArgumentData();
+
+        var expectedPayload = JsonDocument.Parse("{ \n  \"value_type\": 0,\n  \"nullable_value_type\": null,\n  \"reference_type\": \"\",\n  \"nullable_reference_type\": null\n}");
+
+        var serialized = JsonDocument.Parse(JsonSerializer.Serialize(value, jsonOptions));
+        JsonAssert.Equivalent(expectedPayload, serialized);
+    }
+
+    /// <summary>
+    /// Tests whether the converter can correctly deserialize a data record where default values are sourced from the
+    /// type's primary constructor, but the real values come from the payload.
+    /// </summary>
+    [Fact]
+    public void CanDeserializeDataWithConstructorProvidedDefaultsWhereDataIsFromPayload()
+    {
+        var services = new ServiceCollection()
+            .Configure<JsonSerializerOptions>
+            (
+                json =>
+                {
+                    json.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+
+                    json.AddConverter<OptionalConverterFactory>();
+                    json.AddDataObjectConverter<IConstructorArgumentData, ConstructorArgumentData>();
+                })
+            .BuildServiceProvider();
+
+        var jsonOptions = services.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
+        var payload = "{ \n  \"value_type\": 1,\n  \"nullable_value_type\": 2,\n  \"optional_value_type\": 3,\n  \"optional_nullable_value_type\": 4,\n  \"reference_type\": \"ooga\",\n  \"nullable_reference_type\": \"booga\",\n  \"optional_reference_type\": \"wooga\",\n  \"optional_nullable_reference_type\": \"mooga\"\n}";
+
+        var value = JsonSerializer.Deserialize<IConstructorArgumentData>(payload, jsonOptions);
+        Assert.NotNull(value);
+
+        Assert.Equal(1, value.ValueType);
+        Assert.Equal(2, value.NullableValueType);
+        Assert.Equal(3, value.OptionalValueType);
+        Assert.Equal(4, value.OptionalNullableValueType);
+
+        Assert.Equal("ooga", value.ReferenceType);
+        Assert.Equal("booga", value.NullableReferenceType);
+        Assert.Equal("wooga", value.OptionalReferenceType);
+        Assert.Equal("mooga", value.OptionalNullableReferenceType);
+    }
+
+    /// <summary>
+    /// Tests whether the converter can correctly serialize a data record where data values are sourced from the
+    /// type's primary constructor.
+    /// </summary>
+    [Fact]
+    public void CanSerializeDataWithConstructorProvidedDefaultsWhereDataIsFromInstance()
+    {
+        var services = new ServiceCollection()
+            .Configure<JsonSerializerOptions>
+            (
+                json =>
+                {
+                    json.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+                    json.AddDataObjectConverter<IConstructorArgumentData, ConstructorArgumentData>();
+                })
+            .BuildServiceProvider();
+
+        var jsonOptions = services.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
+
+        IConstructorArgumentData value = new ConstructorArgumentData
+        (
+            1,
+            2,
+            3,
+            4,
+            "ooga",
+            "booga",
+            "wooga",
+            "mooga"
+        );
+
+        var expectedPayload = JsonDocument.Parse("{ \n  \"value_type\": 1,\n  \"nullable_value_type\": 2,\n  \"optional_value_type\": 3,\n  \"optional_nullable_value_type\": 4,\n  \"reference_type\": \"ooga\",\n  \"nullable_reference_type\": \"booga\",\n  \"optional_reference_type\": \"wooga\",\n  \"optional_nullable_reference_type\": \"mooga\"\n}");
+
+        var serialized = JsonDocument.Parse(JsonSerializer.Serialize(value, jsonOptions));
+        JsonAssert.Equivalent(expectedPayload, serialized);
+    }
+
+    /// <summary>
+    /// Tests whether the converter can correctly deserialize into an old-style object without a constructor.
+    /// </summary>
+    [Fact]
+    public void CanDeserializeOldStyleObjects()
+    {
+        var services = new ServiceCollection()
+            .Configure<JsonSerializerOptions>
+            (
+                json =>
+                {
+                    json.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+                    json.AddDataObjectConverter<IOldStyleData, OldStyleData>();
+                })
+            .BuildServiceProvider();
+
+        var jsonOptions = services.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
+
+        var payload =
+            """
+            {
+                "value": "ooga",
+                "other_value": 4
+            }
+            """;
+
+        OldStyleData deserialized = JsonSerializer.Deserialize<OldStyleData>(payload, jsonOptions)!;
+
+        Assert.Equal("ooga", deserialized.Value);
+        Assert.Equal(4, deserialized.OtherValue);
     }
 }
